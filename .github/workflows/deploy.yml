@@ -6,7 +6,7 @@ on:
       - aws-rds-setup
 
 env:
-  AWS_REGION: us-east-1                   # Change this to your actual AWS region (e.g., us-east-1, eu-west-2)
+  AWS_REGION: eu-north-1                   # Change this to your actual AWS region (e.g., us-east-1, eu-west-2)
   ECR_REPOSITORY: project1-web            # The name of the ECR repository you created
 
 jobs:
