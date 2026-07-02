@@ -3,7 +3,7 @@ import pandas as pd
 from sqlalchemy import create_engine, inspect, text
 
 # Read connection string from environment
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://yazeed:123@localhost:5432/mydb")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://yazeed:123@localhost:5432/db1")
 engine = create_engine(DATABASE_URL)
 
 def ingest_data():
