@@ -5,6 +5,8 @@ import json
 import models
 import schemas
 from database import engine, get_db
+import os
+import boto3
 
 # Ensure the database tables exist before handling requests.
 models.Base.metadata.create_all(bind=engine)
@@ -12,13 +14,28 @@ models.Base.metadata.create_all(bind=engine)
 # Create the FastAPI application instance.
 app = FastAPI()
 
-# Load the trained machine learning model from disk.
-model = joblib.load("model.joblib")
+MODEL_PATH = "model.joblib"
+S3_BUCKET = os.getenv("MODEL_S3_BUCKET")
+S3_KEY = os.getenv("MODEL_S3_KEY", "model.joblib")
 
-# Define a POST endpoint for making a prediction.
+
+def download_model_if_needed():
+    if os.path.exists(MODEL_PATH):
+        return
+
+    if not S3_BUCKET:
+        raise RuntimeError("MODEL_S3_BUCKET environment variable is missing")
+
+    s3 = boto3.client("s3")
+    s3.download_file(S3_BUCKET, S3_KEY, MODEL_PATH)
+
+
+download_model_if_needed()
+model = joblib.load(MODEL_PATH)
+
+
 @app.post("/predict")
 def predict(request: schemas.PatientInput, db: Session = Depends(get_db)):
-    # Convert the incoming request into the feature format expected by the model.
     input_data = [[
         request.age,
         request.anaemia,
@@ -34,17 +51,15 @@ def predict(request: schemas.PatientInput, db: Session = Depends(get_db)):
         request.time
     ]]
 
-    # Run the model and extract the predicted class as an integer.
     prediction = int(model.predict(input_data)[0])
 
-    # Save the prediction request and result to the database.
     db_record = models.PredictionRecord(
         input_data=json.dumps(request.model_dump()),
         prediction_result=str(prediction)
     )
 
-    # Commit the new record and refresh it so the generated ID is available.
     db.add(db_record)
     db.commit()
     db.refresh(db_record)
+
     return db_record
