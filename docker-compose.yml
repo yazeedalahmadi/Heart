@@ -30,6 +30,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    image: heart-api
 
 volumes:
   postgres_data:
