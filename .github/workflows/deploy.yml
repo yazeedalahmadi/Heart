@@ -1,12 +1,12 @@
-name: Deploy FastAPI to EC2
+name: Build Queue Test Image
 
 on:
   push:
     branches:
-      - main
+      - queue-rabbitmq
 
 jobs:
-  build-and-deploy:
+  build-queue-image:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,29 +19,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push queue Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: yazeedalahmadi/heart:latest
-
-      - name: Deploy on EC2
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            docker pull yazeedalahmadi/heart:latest
-            docker rm -f heart-app || true
-            docker run -d \
-              --name heart-app \
-              --restart unless-stopped \
-              -p 8000:8000 \
-              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-              -e MODEL_S3_BUCKET="heart-model-bucket-yazeed123" \
-              -e MODEL_S3_KEY="model.joblib" \
-              yazeedalahmadi/heart:latest
-            sudo nginx -t
-            sudo systemctl reload nginx
+          tags: yazeedalahmadi/heart:queue
