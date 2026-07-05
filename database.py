@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # Database connection settings. Uses an environment variable when available.
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://yazeed:123@localhost:5432/mydb")
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://yazeed:123@localhost:5432/db1")
 
 # Create the SQLAlchemy engine for database communication.
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

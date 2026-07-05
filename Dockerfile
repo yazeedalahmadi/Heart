@@ -9,5 +9,4 @@ COPY . .
 
 EXPOSE 8000
 
-# Runs the database ingestion script first, then spins up the API server
 CMD alembic upgrade head && python load_csv.py && uvicorn main:app --host 0.0.0.0 --port 8000
