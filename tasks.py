@@ -1,7 +1,6 @@
-import json
-import joblib
 import os
 import boto3
+import joblib
 from celery_app import celery_app
 
 MODEL_PATH = "model.joblib"
