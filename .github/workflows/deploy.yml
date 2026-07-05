@@ -40,6 +40,8 @@ jobs:
               --restart unless-stopped \
               -p 8000:8000 \
               -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              -e MODEL_S3_BUCKET="heart-model-bucket-yazeed123" \
+              -e MODEL_S3_KEY="model.joblib" \
               yazeedalahmadi/heart:latest
             sudo nginx -t
             sudo systemctl reload nginx
