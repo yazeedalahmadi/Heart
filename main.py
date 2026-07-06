@@ -38,11 +38,7 @@ model = joblib.load(MODEL_PATH)
 
 @app.post("/predict")
 def predict(request: schemas.PatientInput, db: Session = Depends(get_db)):
-    if not request.patients:
-        return {
-            "count": 0,
-            "results": []
-        }
+    
     input_data = [[
         request.age,
         request.anaemia,
@@ -73,6 +69,12 @@ def predict(request: schemas.PatientInput, db: Session = Depends(get_db)):
 
 @app.post("/predict-batch")
 def predict_batch(request: schemas.BatchPatientInput, db: Session = Depends(get_db)):
+    if not request.patients:
+        return {
+            "count": 0,
+            "results": []
+        }
+    
     input_data = []
 
     for patient in request.patients:
