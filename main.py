@@ -9,7 +9,7 @@ from database import engine, get_db
 import os
 import boto3
 
-from tasks import predict_task
+from tasks import predict_task, predict_batch_task
 from celery_app import celery_app
 
 models.Base.metadata.create_all(bind=engine)
@@ -119,6 +119,40 @@ def predict_batch(request: schemas.BatchPatientInput, db: Session = Depends(get_
         "results": results
     }
 
+@app.post("/predict-batch-async")
+def predict_batch_async(request: schemas.BatchPatientInput):
+    if not request.patients:
+        return {
+            "task_id": None,
+            "status": "empty",
+            "message": "No patients provided"
+        }
+
+    batch_input_data = []
+
+    for patient in request.patients:
+        batch_input_data.append([
+            patient.age,
+            patient.anaemia,
+            patient.creatinine_phosphokinase,
+            patient.diabetes,
+            patient.ejection_fraction,
+            patient.high_blood_pressure,
+            patient.platelets,
+            patient.serum_creatinine,
+            patient.serum_sodium,
+            patient.sex,
+            patient.smoking,
+            patient.time
+        ])
+
+    task = predict_batch_task.delay(batch_input_data)
+
+    return {
+        "task_id": task.id,
+        "status": "queued",
+        "count": len(batch_input_data)
+    }
 
 @app.post("/predict-async")
 def predict_async(request: schemas.PatientInput):

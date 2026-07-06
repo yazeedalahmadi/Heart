@@ -27,3 +27,21 @@ model = joblib.load(MODEL_PATH)
 def predict_task(input_data):
     prediction = int(model.predict([input_data])[0])
     return prediction
+
+
+@celery_app.task
+def predict_batch_task(batch_input_data):
+    predictions = model.predict(batch_input_data)
+
+    results = []
+
+    for input_row, prediction in zip(batch_input_data, predictions):
+        results.append({
+            "input": input_row,
+            "prediction": int(prediction)
+        })
+
+    return {
+        "count": len(results),
+        "results": results
+    }
