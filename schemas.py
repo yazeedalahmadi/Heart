@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from typing import List
 # Request schema for the prediction endpoint.
 class PatientInput(BaseModel):
     age: int
@@ -26,3 +26,6 @@ class PatientResponse(PatientInput):
 # Response schema for a prediction result.
 class PredictionResponse(BaseModel):
     prediction: int
+    
+class BatchPatientInput(BaseModel):
+    patients: List[PatientInput]

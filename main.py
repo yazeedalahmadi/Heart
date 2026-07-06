@@ -38,6 +38,11 @@ model = joblib.load(MODEL_PATH)
 
 @app.post("/predict")
 def predict(request: schemas.PatientInput, db: Session = Depends(get_db)):
+    if not request.patients:
+        return {
+            "count": 0,
+            "results": []
+        }
     input_data = [[
         request.age,
         request.anaemia,
@@ -65,6 +70,52 @@ def predict(request: schemas.PatientInput, db: Session = Depends(get_db)):
     db.refresh(db_record)
 
     return db_record
+
+@app.post("/predict-batch")
+def predict_batch(request: schemas.BatchPatientInput, db: Session = Depends(get_db)):
+    input_data = []
+
+    for patient in request.patients:
+        input_data.append([
+            patient.age,
+            patient.anaemia,
+            patient.creatinine_phosphokinase,
+            patient.diabetes,
+            patient.ejection_fraction,
+            patient.high_blood_pressure,
+            patient.platelets,
+            patient.serum_creatinine,
+            patient.serum_sodium,
+            patient.sex,
+            patient.smoking,
+            patient.time
+        ])
+
+    predictions = model.predict(input_data)
+
+    results = []
+
+    for patient, prediction in zip(request.patients, predictions):
+        prediction_int = int(prediction)
+
+        db_record = models.PredictionRecord(
+            input_data=json.dumps(patient.model_dump()),
+            prediction_result=str(prediction_int)
+        )
+
+        db.add(db_record)
+
+        results.append({
+            "input": patient.model_dump(),
+            "prediction": prediction_int
+        })
+
+    db.commit()
+
+    return {
+        "count": len(results),
+        "results": results
+    }
 
 
 @app.post("/predict-async")
